@@ -14,7 +14,7 @@ Specify the number of transition frames between images.
 Set the video's frames per second (FPS) and quality.
 
 Morphing Transition:
-Creates seamless transitions between consecutive images using linear blending.
+Creates seamless transitions between consecutive images using optical flow method..
 Video Generation:
 Outputs a high-quality MP4 video containing all images and transitions.
 Error Handling:
@@ -61,7 +61,7 @@ Configuration du nombre d’images de transition.
 Définition des images par seconde (FPS) et de la qualité de la vidéo.
 
 Transitions fluides :
-Génère des transitions homogènes entre des images consécutives à l'aide d'un mélange linéaire.
+Génère des transitions homogènes entre des images consécutives à l'aide d'une méthode de type flux optique.
 
 Création de vidéo :
 Produit une vidéo MP4 de haute qualité regroupant toutes les images et transitions.
