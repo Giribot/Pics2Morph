@@ -5,13 +5,39 @@ from tkinter import Tk, filedialog, simpledialog, messagebox, Button, Toplevel
 from tqdm import tqdm
 import sys
 
-def morph_images(img1, img2, num_transitions):
-    transitions = []
-    for i in range(num_transitions + 1):  # Include the second image in the last step
-        alpha = i / num_transitions
-        morphed_img = cv2.addWeighted(img1, 1 - alpha, img2, alpha, 0)
-        transitions.append(morphed_img)
-    return transitions
+def calculate_optical_flow(img1, img2, num_transitions):
+    # Convert images to grayscale for optical flow
+    gray1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+
+    # Calculate dense optical flow using Farneback method with optimized parameters
+    flow = cv2.calcOpticalFlowFarneback(gray1, gray2, None, 0.5, 5, 20, 5, 7, 1.5, 0)
+
+    h, w = gray1.shape
+    flow_x, flow_y = flow[:, :, 0], flow[:, :, 1]
+
+    results = []
+    for alpha in np.linspace(0, 1, num_transitions + 1):
+        flow_interpolated_x = alpha * flow_x
+        flow_interpolated_y = alpha * flow_y
+
+        # Create mapping coordinates
+        map_x, map_y = np.meshgrid(np.arange(w), np.arange(h))
+        map_x = (map_x + flow_interpolated_x).astype(np.float32)
+        map_y = (map_y + flow_interpolated_y).astype(np.float32)
+
+        # Warp images with higher quality interpolation
+        warped_img = cv2.remap(img1, map_x, map_y, interpolation=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
+        results.append(warped_img)
+
+    return results
+
+def blend_images_sequence(img1, img2, warped_sequence, num_transitions):
+    results = []
+    for alpha, warped_img in zip(np.linspace(0, 1, num_transitions + 1), warped_sequence):
+        blended_img = cv2.addWeighted(warped_img, 1 - alpha, img2, alpha, 0)
+        results.append(blended_img)
+    return results
 
 def create_video_from_images(image_folder, output_path, fps):
     images = sorted(
@@ -62,12 +88,13 @@ def main():
         messagebox.showerror("Error", "The folder must contain at least two images!")
         return
 
-    num_transitions = simpledialog.askinteger("Input", "Enter the number of transition images between each pair:", initialvalue=15)
+    # Adjust the default value for number of transitions to 30 for smoother animation
+    num_transitions = simpledialog.askinteger("Input", "Enter the number of transition images between each pair:", initialvalue=30)
     if not num_transitions or num_transitions <= 0:
         messagebox.showerror("Error", "Invalid number of transitions!")
         return
 
-    fps = simpledialog.askinteger("Input", "Enter the desired frames per second for the video:", initialvalue=15)
+    fps = simpledialog.askinteger("Input", "Enter the desired frames per second for the video:", initialvalue=30)
     if not fps or fps <= 0:
         messagebox.showerror("Error", "Invalid FPS value!")
         return
@@ -87,7 +114,8 @@ def main():
             messagebox.showerror("Error", f"Images {image_files[i]} and {image_files[i+1]} have different dimensions!")
             return
 
-        transitions = morph_images(img1, img2, num_transitions)
+        warped_sequence = calculate_optical_flow(img1, img2, num_transitions)
+        transitions = blend_images_sequence(img1, img2, warped_sequence, num_transitions)
 
         final_sequence.append(img1)
         final_sequence.extend(transitions)
