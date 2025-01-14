@@ -13,7 +13,7 @@ def morph_images(img1, img2, num_transitions):
         transitions.append(morphed_img)
     return transitions
 
-def create_video_from_images(image_folder, output_path, fps, quality):
+def create_video_from_images(image_folder, output_path, fps):
     images = sorted(
         [img for img in os.listdir(image_folder) if img.lower().endswith(('png', 'jpg', 'jpeg'))]
     )
@@ -72,11 +72,6 @@ def main():
         messagebox.showerror("Error", "Invalid FPS value!")
         return
 
-    quality = simpledialog.askinteger("Input", "Enter the quality of the video (1-100, higher is better):", initialvalue=90)
-    if not quality or quality < 1 or quality > 100:
-        messagebox.showerror("Error", "Invalid quality value!")
-        return
-
     output_dir = os.path.join(folder_path, f"Picsmorph_{image_files[0]}")
     os.makedirs(output_dir, exist_ok=True)
 
@@ -103,7 +98,7 @@ def main():
         cv2.imwrite(os.path.join(output_dir, f"{idx:04d}.jpg"), img)
 
     video_path = os.path.join(output_dir, "morphing_video.mp4")
-    create_video_from_images(output_dir, video_path, fps, quality)
+    create_video_from_images(output_dir, video_path, fps)
 
     show_success_window(output_dir)
 
