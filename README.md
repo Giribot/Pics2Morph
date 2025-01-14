@@ -15,8 +15,10 @@ Set the video's frames per second (FPS) and quality.
 
 Morphing Transition:
 Creates seamless transitions between consecutive images using optical flow method..
+
 Video Generation:
 Outputs a high-quality MP4 video containing all images and transitions.
+
 Error Handling:
 Ensures images have the same dimensions.
 Provides clear error messages for incorrect inputs.
